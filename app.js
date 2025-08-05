@@ -3,6 +3,8 @@ const express = require('express');
 const path = require('path');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
+const flash = require('connect-flash');
+const session = require('express-session');
 
 const app = express();
 
@@ -16,11 +18,20 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
+app.use(session({
+  secret: 'yourSecretKey',
+  resave: false,
+  saveUninitialized: false,
+}));
+
+app.use(flash());
+
 // authorization
 require("./config/passport")(app);
 
 // router
 app.use('/', require('./routes'));
+app.use('/schedule', require('./routes/schedule'));
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
@@ -37,5 +48,7 @@ app.use(function(err, req, res, next) {
   res.status(err.status || 500);
   res.render('error');
 });
+
+
 
 module.exports = app;
