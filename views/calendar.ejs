@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>カレンダー</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/main.min.css">
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css">
+</head>
+<body>
+  <div class="container mt-4">
+    <h1>スケジュール管理カレンダー</h1>
+    <form action="/schedule/add" method="post" class="mb-4">
+      <div class="form-row">
+        <div class="col">
+          <input type="text" name="title" class="form-control" placeholder="タイトル" required>
+        </div>
+        <div class="col">
+          <input type="text" name="description" class="form-control" placeholder="説明">
+        </div>
+        <div class="col">
+          <input type="datetime-local" name="start" class="form-control" required>
+        </div>
+        <div class="col">
+          <input type="datetime-local" name="end" class="form-control" required>
+        </div>
+        <div class="col">
+          <button type="submit" class="btn btn-primary">追加</button>
+        </div>
+      </div>
+    </form>
+    <div id="calendar"></div>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/main.min.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      var calendarEl = document.getElementById('calendar');
+      var calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        locale: 'ja',
+        events: [
+          <% if (schedules && schedules.length) { %>
+            <% schedules.forEach(function(schedule) { %>
+              {
+                title: "<%= schedule.title %>",
+                start: "<%= schedule.start.toISOString ? schedule.start.toISOString() : schedule.start %>",
+                end: "<%= schedule.end.toISOString ? schedule.end.toISOString() : schedule.end %>",
+                description: "<%= schedule.description %>"
+              },
+            <% }); %>
+          <% } %>
+        ],
+        eventClick: function(info) {
+          alert(info.event.title + "\n" + info.event.extendedProps.description);
+        }
+      });
+      calendar.render();
+    });

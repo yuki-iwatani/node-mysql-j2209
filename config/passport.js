@@ -3,8 +3,7 @@ const LocalStrategy = require("passport-local");
 const knex = require("../db/knex");
 const bcrypt = require("bcrypt");
 const User = require("../models/user");
-const cookieSession = require("cookie-session");
-const secret = "secretCuisine123";
+const flash = require('connect-flash');
 
 module.exports = function (app) {
  passport.serializeUser(function(user, done) {
@@ -23,39 +22,30 @@ module.exports = function (app) {
 });
 
   passport.use(new LocalStrategy({
-      usernameField: "username",
-      passwordField: "password",
-    }, function (username, password, done) {
-      knex("users")
-        .where({
-          name: username,
-        })
-        .select("*")
-        .then(async function (results) {
-          if (results.length === 0) {
-            return done(null, false, {message: "Invalid User"});
-          } else if (await bcrypt.compare(password, results[0].password)) {
-            return done(null, results[0]);
-          } else {
-            return done(null, false, {message: "Invalid User"});
-          }
-        })
-        .catch(function (err) {
-          console.error(err);
-          return done(null, false, {message: err.toString()})
-        });
+  usernameField: "username",
+  passwordField: "password",
+  passReqToCallback: true
+}, async function (req, username, password, done) {
+  try {
+    const results = await knex("users").where({ name: username }).select("*");
+    if (results.length === 0) {
+      req.flash('error', 'Invalid User');
+      return done(null, false);
     }
-  ));
+    const user = results[0];
+    const match = await bcrypt.compare(password, user.password);
+    if (!match) {
+      req.flash('error', 'Invalid User');
+      return done(null, false);
+    }
+    return done(null, user);
+  } catch (err) {
+    return done(err);
+  }
+}));
 
-  app.use(
-    cookieSession({
-      name: "session",
-      keys: [secret],
 
-      // Cookie Options
-      maxAge: 24 * 60 * 60 * 1000, // 24 hours
-    })
-  );
+  app.use(flash()); 
 
   app.use(passport.initialize());
   app.use(passport.session());

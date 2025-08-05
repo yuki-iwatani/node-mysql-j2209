@@ -34,6 +34,10 @@ router.get('/', function (req, res, next) {
 
 router.post('/', function (req, res, next) {
   const isAuth = req.isAuthenticated();
+  if (!isAuth || !req.user) {
+    // 未認証の場合はサインインページへリダイレクト
+    return res.redirect('/signin');
+  }
   const userId = req.user.id;
   const todo = req.body.add;
   knex("tasks")
