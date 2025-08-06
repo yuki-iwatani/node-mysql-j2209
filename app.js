@@ -30,7 +30,8 @@ app.use(flash());
 require("./config/passport")(app);
 
 // router
-app.use('/', require('./routes'));
+// app.use('/', require('./routes')); // ← TodoApp関連ルートは不要
+app.get('/', (req, res) => res.redirect('/schedule')); // 追加: ルートアクセス時にスケジュール管理へリダイレクト
 app.use('/schedule', require('./routes/schedule'));
 
 // catch 404 and forward to error handler
